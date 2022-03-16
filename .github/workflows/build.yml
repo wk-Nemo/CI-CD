@@ -28,7 +28,7 @@ jobs:
          user: ${{ secrets.DR_USER }}
          pass: ${{ secrets.DR_PASS }}
          connect_timeout: 10s
-         local: '.my-project/dist/*'
+         local: './my-project/dist/*'
          remote: /www/actionTest
 
            
