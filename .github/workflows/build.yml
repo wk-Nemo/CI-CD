@@ -7,13 +7,17 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
       - name: Build
         run: |
           cd my-project # 进入项目目录
           npm install  # 安装依赖
           npm run build  # 执行打包
+          tar -czvf dist.tar dist # 目标文件进行打包
   
       - name: Deploy 🚀
         uses: cross-the-world/scp-pipeline@master
@@ -26,6 +30,14 @@ jobs:
          pass: ${{ secrets.DR_PASS }}
          port: ${{ secrets.DR_PORT }}
          connect_timeout: 10s
-         local: './my-project/dist/*'
-         remote: /usr/www/actionTest
+         first_ssh: |
+            rm -rf /usr/www/actionTest/dist
+            mkdir -p /usr/www/actionTest/dist
+         scp: |
+           './dist.tar' => /usr/www/actionTest/
+         last_ssh: |
+            cd /usr/www/actionTest # 切换到部署目录
+            tar -xzvf dist.tar  # 将 tar 打包文件进行解压到当前部署目录
+
+
            
