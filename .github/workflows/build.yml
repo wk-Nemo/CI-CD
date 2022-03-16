@@ -1,43 +1,32 @@
-# 建立一个名为CI的工作流
-name: CI
-
-# 监听 master上的push事件
+name: build
 on: 
   push: 
     branches: 
       - main
-# 开始任务
 jobs:
-  # 建立一个名为 build 的job
-  build:
-    # 在最新的乌班图环境进行工作
-    runs-on: ubuntu-16.04
-
-    # 开始设置构建步骤
-    steps:
-      # 这是github官方的一个action，用于clone该仓库的源码到工作流中，
+  build-and-deploy:
+    runs-on: ubuntu-16.04
+    steps:
       - uses: actions/checkout@v2
 
-      # 命名这个步骤为构建Build
       - name: Build
-        // 运行 安装和打包任务
-        run: 
+        run: |
           cd ./my-project # 进入项目目录
-          npm install && npm run build
-
-      # 命名这个任务为发布Deploy
-      - name: Deploy
-        # 因为构建之后，需要把代码上传到服务器上，所以需要连接到ssh，并且做一个拷贝操作
+          npm install  # 安装依赖
+          npm run build  # 执行打包
+          tar -czvf dist.tar dist # 目标文件进行打包
+  
+      - name: Deploy 🚀
         uses: cross-the-world/scp-pipeline@master
         env:
           WELCOME: "ssh scp ssh pipelines"
           LASTSSH: "Doing something after copying"
         with:
-          host: ${{ secrets.DR_HOST }}
-          user: ${{ secrets.DR_USER }}
-          pass: ${{ secrets.DR_PASS }}
-          port: ${{ secrets.DR_PORT }}
-          connect_timeout: 10s
-          local: './dist/*'
-          remote: /usr/www
-
+         host: ${{ secrets.DR_HOST }}
+         user: ${{ secrets.DR_USER }}
+         pass: ${{ secrets.DR_PASS }}
+         port: ${{ secrets.DR_PORT }}
+         connect_timeout: 10s
+         local: './dist/*'
+         remote: /usr/www
+           
